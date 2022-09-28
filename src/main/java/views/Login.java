@@ -84,7 +84,14 @@ public class Login extends JFrame {
 		btnexit.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				System.exit(0);
+				String[] objBotones = {"Si","No"};
+				int PromptResult = JOptionPane.showOptionDialog(null,
+						"¿Estás seguro de querer salir?", "Confirmación",
+						JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, objBotones, objBotones[1]);
+				if(PromptResult== JOptionPane.YES_OPTION)
+				{
+					System.exit(0);
+				}
 			}
 			@Override
 			public void mouseEntered(MouseEvent e) {

@@ -154,19 +154,7 @@ public class ReservasView extends JFrame {
             Date fechaSalida = txtFechaS.getDate();
 
             if (fechaEntrada != null && fechaSalida != null) {
-                long feMillis = fechaEntrada.getTime();
-                long fsMillis = fechaSalida.getTime();
-                long tiempoDif = Math.abs(fsMillis - feMillis);
-                int diasDif = Math.toIntExact(TimeUnit.DAYS.convert(tiempoDif, TimeUnit.MILLISECONDS));
-
-                if (fechaSalida.compareTo(fechaEntrada) > 0 && diasDif > 0) {
-                    double valor = diasDif * Reserva.VALOR_RESERVA_X_DIA;
-
-                    txtValor.setText(String.format("Total: %.2f USD.", valor));
-                } else {
-                    JOptionPane.showMessageDialog(null, "La fecha de salida debe ser mayor a la de entrada.");
-                    txtFechaS.setDate(null);
-                }
+                validarFechas(fechaEntrada, fechaSalida);
             }
         });
         panel.add(txtFechaS);
@@ -323,8 +311,9 @@ public class ReservasView extends JFrame {
                     Reserva reserva = new Reserva(txtFechaE.getDate(), txtFechaS.getDate(), txtFormaPago.getSelectedItem().toString());
                     reservaController.guardar(reserva);
 
-					RegistroHuesped registro = new RegistroHuesped(reserva);
-					registro.setVisible(true);
+                    RegistroHuesped registro = new RegistroHuesped(reserva);
+                    registro.setVisible(true);
+                    dispose();
                 } else {
                     JOptionPane.showMessageDialog(null, "Debes llenar todos los campos.");
                 }
@@ -342,6 +331,21 @@ public class ReservasView extends JFrame {
         lblSiguiente.setFont(new Font("Roboto", Font.PLAIN, 18));
         lblSiguiente.setBounds(0, 0, 122, 35);
         btnsiguiente.add(lblSiguiente);
+    }
+
+    private void validarFechas(Date fechaEntrada, Date fechaSalida) {
+        long feMillis = fechaEntrada.getTime();
+        long fsMillis = fechaSalida.getTime();
+        long tiempoDif = Math.abs(fsMillis - feMillis);
+        int diasDif = Math.toIntExact(TimeUnit.DAYS.convert(tiempoDif, TimeUnit.MILLISECONDS));
+
+        if (fechaSalida.compareTo(fechaEntrada) > 0 && diasDif > 0) {
+            double valor = diasDif * Reserva.VALOR_RESERVA_X_DIA;
+            txtValor.setText(String.format("%.2f USD.", valor));
+        } else {
+            JOptionPane.showMessageDialog(null, "La fecha de salida debe ser mayor a la de entrada.");
+            txtFechaS.setDate(null);
+        }
     }
 
     //Código que permite mover la ventana por la pantalla según la posición de "x" y "y"

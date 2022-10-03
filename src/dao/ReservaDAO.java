@@ -15,9 +15,9 @@ public class ReservaDAO {
         try {
             String query = "INSERT INTO hotel_alura.reserva(FechaEntrada, FechaSalida, Valor, FormaPago) VALUES(?, ?, ?, ?)";
             final PreparedStatement statement = con.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
-            try (statement) {
-                ejecutarRegistro(reserva, statement);
-            }
+
+            ejecutarRegistro(reserva, statement);
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -37,5 +37,9 @@ public class ReservaDAO {
                 reserva.setId(resultSet.getInt(1));
             }
         }
+    }
+
+    public Connection getCon() {
+        return this.con;
     }
 }

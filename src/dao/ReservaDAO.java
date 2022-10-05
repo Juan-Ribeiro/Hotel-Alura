@@ -3,6 +3,11 @@ package dao;
 import modelo.Reserva;
 
 import java.sql.*;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Date;
 
 public class ReservaDAO {
     private Connection con;
@@ -41,5 +46,54 @@ public class ReservaDAO {
 
     public Connection getCon() {
         return this.con;
+    }
+
+    public List<Reserva> listarReservas() {
+        ArrayList<Reserva> listaReservas = new ArrayList<>();
+
+        try {
+            String query = "SELECT * FROM hotel_alura.reserva";
+
+            final PreparedStatement statement = con.prepareStatement(query);
+            try (statement) {
+                ejecutarRegistroReserva(listaReservas, statement);
+            }
+        } catch (SQLException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return listaReservas;
+    }
+
+    public List<Reserva> listarReservas(int busqueda) {
+        ArrayList<Reserva> listaReservas = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM hotel_alura.reserva WHERE reservaId = ?";
+
+            final PreparedStatement statement = con.prepareStatement(query);
+            try (statement) {
+                statement.setInt(1, busqueda);
+                ejecutarRegistroReserva(listaReservas, statement);
+            }
+        } catch (SQLException | ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return listaReservas;
+    }
+
+    private void ejecutarRegistroReserva(ArrayList<Reserva> listaReservas, PreparedStatement statement) throws SQLException, ParseException {
+        statement.execute();
+
+        final ResultSet resultSet = statement.getResultSet();
+        try (resultSet) {
+            while (resultSet.next()) {
+                SimpleDateFormat formato = new SimpleDateFormat("dd/MM/yyyy");
+                Date fechaEntrada = formato.parse(resultSet.getString("FechaEntrada"));
+                Date fechaSalida = formato.parse(resultSet.getString("FechaSalida"));
+                String formaPago = resultSet.getString("FormaPago");
+                Reserva reserva = new Reserva(fechaEntrada, fechaSalida, formaPago);
+                reserva.setId(resultSet.getInt("ReservaId"));
+                listaReservas.add(reserva);
+            }
+        }
     }
 }

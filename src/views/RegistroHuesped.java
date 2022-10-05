@@ -3,6 +3,7 @@ package views;
 import java.awt.EventQueue;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.NumberFormatter;
 import java.awt.Color;
 
 import com.toedter.calendar.JDateChooser;
@@ -17,7 +18,13 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.text.Format;
 import java.awt.Toolkit;
-import java.util.Date;
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.ZoneId;
+import java.util.*;
 
 @SuppressWarnings("serial")
 public class RegistroHuesped extends JFrame {
@@ -211,7 +218,7 @@ public class RegistroHuesped extends JFrame {
         lblNumeroReserva.setFont(new Font("Roboto Black", Font.PLAIN, 18));
         contentPane.add(lblNumeroReserva);
 
-        txtNreserva = new JTextField();
+        txtNreserva = new JFormattedTextField(getNumberFormatter());
         txtNreserva.setFont(new Font("Roboto", Font.PLAIN, 16));
         txtNreserva.setBounds(560, 495, 285, 33);
         txtNreserva.setColumns(10);
@@ -260,23 +267,7 @@ public class RegistroHuesped extends JFrame {
         btnguardar.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                String nombre = txtNombre.getText();
-                String apellido = txtApellido.getText();
-                Date fechaNacimiento = txtFechaN.getDate();
-                String nacionalidad = txtNacionalidad.getSelectedItem().toString();
-                String telefono = txtTelefono.getText();
-                int numeroReserva = Integer.parseInt(txtNreserva.getText());
-
-                if (huespedController.validarHuesped(nombre, apellido, fechaNacimiento, nacionalidad, telefono, numeroReserva)) {
-                    Huesped huesped = new Huesped(nombre, apellido, fechaNacimiento, nacionalidad, telefono, numeroReserva);
-                    huespedController.guardar(huesped);
-
-                    Exito exito = new Exito();
-                    exito.setVisible(true);
-                    dispose();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Huesped ingresado inválido. Debes llenar todos los campos");
-                }
+                registrarHuesped();
             }
         });
         btnguardar.setLayout(null);
@@ -341,6 +332,65 @@ public class RegistroHuesped extends JFrame {
         labelExit.setFont(new Font("Roboto", Font.PLAIN, 18));
     }
 
+    private void registrarHuesped() {
+        String nombre = txtNombre.getText();
+        String apellido = txtApellido.getText();
+        Date fechaNacimiento = txtFechaN.getDate();
+        String nacionalidad = txtNacionalidad.getSelectedItem().toString();
+        String telefono = txtTelefono.getText();
+        int numeroReserva;
+
+        try {
+            numeroReserva = Integer.parseInt(txtNreserva.getText());
+        } catch (NumberFormatException exception) {
+            JOptionPane.showMessageDialog(null, "El campo de número de reserva no puede estar vacio.");
+            return;
+        }
+
+        if (validarDatosDeHuesped(nombre, apellido, fechaNacimiento, nacionalidad, telefono, numeroReserva)) {
+            String fecha = new SimpleDateFormat("dd-MM-yyyy").format(fechaNacimiento);
+            Huesped huesped = new Huesped(nombre, apellido, fecha, nacionalidad, telefono, numeroReserva);
+            huespedController.guardar(huesped);
+
+            Exito exito = new Exito();
+            exito.setVisible(true);
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(null, "Huesped ingresado inválido. Debes llenar todos los campos");
+        }
+    }
+
+    private boolean validarDatosDeHuesped(String nombre, String apellido, Date fechaNacimiento,
+                                          String nacionalidad, String telefono, int numeroReserva) {
+        return nombre != null
+                && apellido != null
+                && (fechaNacimiento != null && validarFechaDeNacimiento(fechaNacimiento))
+                && nacionalidad != null
+                && telefono != null
+                && numeroReserva > 0;
+    }
+
+    private boolean validarFechaDeNacimiento(Date fechaNacimiento) {
+        boolean esFechaValida = false;
+        SimpleDateFormat formatoFecha = new SimpleDateFormat("dd-MM-yyyy");
+
+        try {
+            Date fechaMinima = formatoFecha.parse("01-01-1900");
+            Period periodo = Period.between(fechaNacimiento.toInstant().atZone(ZoneId.systemDefault()).toLocalDate(), LocalDate.now());
+            if (periodo.getYears() > 18 && fechaNacimiento.compareTo(fechaMinima) > 0) {
+                esFechaValida = true;
+            } else {
+                JOptionPane.showMessageDialog(null,
+                        "Fecha de nacimiento inválida." +
+                                " Debe ser mayor de 18 años de edad y haber nacido después del año 1900.");
+
+            }
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
+        return esFechaValida;
+    }
 
     //Código que permite mover la ventana por la pantalla según la posición de "x" y "y"
     private void headerMousePressed(java.awt.event.MouseEvent evt) {
@@ -352,6 +402,16 @@ public class RegistroHuesped extends JFrame {
         int x = evt.getXOnScreen();
         int y = evt.getYOnScreen();
         this.setLocation(x - xMouse, y - yMouse);
+    }
+
+    private NumberFormatter getNumberFormatter() {
+        NumberFormat format = NumberFormat.getInstance();
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+        formatter.setMinimum(0);
+        formatter.setMaximum(Integer.MAX_VALUE);
+
+        return formatter;
     }
 
 }

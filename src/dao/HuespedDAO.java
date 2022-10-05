@@ -3,6 +3,8 @@ package dao;
 import modelo.Huesped;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HuespedDAO {
     private Connection con;
@@ -41,5 +43,60 @@ public class HuespedDAO {
                 huesped.setHuespedId(resultSet.getInt(1));
             }
         }
+    }
+
+    public List<Huesped> listarHuespedes() {
+        ArrayList<Huesped> listaHuespedes = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM hotel_alura.huesped";
+
+            final PreparedStatement statement = con.prepareStatement(query);
+            try (statement) {
+                ejecutarRegistroHuesped(listaHuespedes, statement);
+            }
+
+            return listaHuespedes;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return listaHuespedes;
+    }
+
+    private void ejecutarRegistroHuesped(ArrayList<Huesped> listaHuespedes, PreparedStatement statement) throws SQLException {
+        statement.execute();
+
+        final ResultSet resultSet = statement.getResultSet();
+        try (resultSet) {
+            while (resultSet.next()) {
+                Huesped huesped = new Huesped(resultSet.getInt("huespedId"), resultSet.getString("Nombre"),
+                        resultSet.getString("Apellido"),
+                        resultSet.getString("FechaNacimiento"),
+                        resultSet.getString("Nacionalidad"),
+                        resultSet.getString("Telefono"),
+                        resultSet.getInt("reservaId"));
+
+                listaHuespedes.add(huesped);
+            }
+        }
+    }
+
+    public List<Huesped> listarHuespedes(String busqueda) {
+        ArrayList<Huesped> listaHuespedes = new ArrayList<>();
+        try {
+            String query = "SELECT * FROM hotel_alura.huesped WHERE Apellido=(?)";
+
+            final PreparedStatement statement = con.prepareStatement(query);
+            try (statement) {
+                statement.setString(1, busqueda);
+                ejecutarRegistroHuesped(listaHuespedes, statement);
+            }
+
+            return listaHuespedes;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return listaHuespedes;
     }
 }

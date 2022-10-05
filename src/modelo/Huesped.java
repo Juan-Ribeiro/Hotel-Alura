@@ -12,13 +12,18 @@ public class Huesped {
     private String telefono;
     private int numeroReserva;
 
-    public Huesped(String nombre, String apellido, Date fechaNacimiento, String nacionalidad, String telefono, int numeroReserva) {
+    public Huesped(String nombre, String apellido, String fechaNacimiento, String nacionalidad, String telefono, int numeroReserva) {
         setNombre(nombre);
         setApellido(apellido);
         setFechaNacimiento(fechaNacimiento);
         setNacionalidad(nacionalidad);
         setTelefono(telefono);
         setNumeroReserva(numeroReserva);
+    }
+
+    public Huesped(int huespedId, String nombre, String apellido, String fechaNacimiento, String nacionalidad, String telefono, int reservaId) {
+        this(nombre, apellido, fechaNacimiento, nacionalidad, telefono, reservaId);
+        setHuespedId(huespedId);
     }
 
     public String getNombre() {
@@ -41,8 +46,8 @@ public class Huesped {
         return fechaNacimiento;
     }
 
-    private void setFechaNacimiento(Date fechaNacimiento) {
-        this.fechaNacimiento = new SimpleDateFormat("dd/MM/yyyy").format(fechaNacimiento);
+    private void setFechaNacimiento(String fechaNacimiento) {
+        this.fechaNacimiento = fechaNacimiento;
     }
 
     public String getNacionalidad() {
@@ -75,5 +80,11 @@ public class Huesped {
 
     public int getHuespedId() {
         return huespedId;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ID: %d - Nombre: %s - Apellido: %s - Fecha de Nacimiento: %s - Nacionalidad: %s - Telefono: %s - Numero de Reserva: %d",
+                this.huespedId, this.nombre, this.apellido, this.fechaNacimiento, this.nacionalidad, this.telefono, this.numeroReserva);
     }
 }

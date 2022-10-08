@@ -16,11 +16,19 @@ public class HuespedController {
         this.huespedDAO.guardar(huesped);
     }
 
-    public List<Huesped> listarHuespedes(String busqueda) {
+    public List<Huesped> listar(String busqueda) {
         return this.huespedDAO.listarHuespedes(busqueda);
     }
 
-    public List<Huesped> listarHuespedes() {
+    public List<Huesped> listar() {
         return this.huespedDAO.listarHuespedes();
+    }
+
+    public Integer modificar(Integer id, String nombre, String apellido, String fechaNacimiento, String nacionalidad, String telefono, Integer idReserva) {
+        return this.huespedDAO.modificar(id, nombre, apellido, fechaNacimiento, nacionalidad, telefono, idReserva);
+    }
+
+    public Integer eliminar(Integer id) {
+        return this.huespedDAO.eliminar(id);
     }
 }

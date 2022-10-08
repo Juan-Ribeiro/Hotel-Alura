@@ -17,11 +17,19 @@ public class ReservaController {
         this.reservaDAO.guardar(reserva);
     }
 
-    public List<Reserva> listarReservas(int busqueda) {
+    public List<Reserva> listar(int busqueda) {
         return this.reservaDAO.listarReservas(busqueda);
     }
 
-    public List<Reserva> listarReservas() {
+    public List<Reserva> listar() {
         return this.reservaDAO.listarReservas();
+    }
+
+    public Integer modificar(Integer id, String fechaEntrada, String fechaSalida, Double valor, String formaPago) {
+        return this.reservaDAO.modificar(id, fechaEntrada, fechaSalida, valor, formaPago);
+    }
+
+    public Integer eliminar(Integer id) {
+        return this.reservaDAO.eliminar(id);
     }
 }

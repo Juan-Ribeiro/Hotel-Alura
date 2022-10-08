@@ -99,4 +99,43 @@ public class HuespedDAO {
 
         return listaHuespedes;
     }
+
+    public Integer modificar(Integer id, String nombre, String apellido, String fechaNacimiento, String nacionalidad, String telefono, Integer idReserva) {
+        try {
+            String query = "UPDATE hotel_alura.huesped SET Nombre = ?, Apellido = ?, FechaNacimiento = ?," +
+                    " Nacionalidad = ?, Telefono = ?, reservaId = ? WHERE huespedId = ?";
+
+            final PreparedStatement statement = con.prepareStatement(query);
+            try (statement) {
+                statement.setString(1, nombre);
+                statement.setString(2, apellido);
+                statement.setString(3, fechaNacimiento);
+                statement.setString(4, nacionalidad);
+                statement.setString(5, telefono);
+                statement.setInt(6, id);
+                statement.setInt(7, id);
+
+                statement.execute();
+
+                return statement.getUpdateCount();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Integer eliminar(Integer id) {try {
+        String query = "DELETE FROM hotel_alura.huesped WHERE huespedId = ?";
+
+        final PreparedStatement statement = this.con.prepareStatement(query);
+        try (statement) {
+            statement.setInt(1, id);
+            statement.execute();
+
+            return statement.getUpdateCount();
+        }
+    } catch (SQLException e) {
+        throw new RuntimeException(e);
+    }
+    }
 }

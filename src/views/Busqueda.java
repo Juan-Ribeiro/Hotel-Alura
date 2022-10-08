@@ -9,6 +9,7 @@ import java.awt.EventQueue;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Toolkit;
@@ -16,6 +17,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.List;
+import java.util.Optional;
 
 @SuppressWarnings("serial")
 public class Busqueda extends JFrame {
@@ -256,6 +258,175 @@ public class Busqueda extends JFrame {
         lblEliminar.setBounds(0, 0, 122, 35);
         btnEliminar.add(lblEliminar);
         setResizable(false);
+
+        btnEditar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                modificar(panel);
+                limpiarTabla(getTablaActual(panel));
+                cargarTabla(panel);
+            }
+        });
+
+        btnEliminar.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                eliminar(panel);
+                limpiarTabla(getTablaActual(panel));
+                cargarTabla(panel);
+            }
+        });
+    }
+
+    private void cargarTabla(JTabbedPane panel) {
+        String nombreTabla = getNombreTablaElegida(panel);
+        DefaultTableModel modelo = (DefaultTableModel) getTablaActual(panel).getModel();
+        List<?> elementos;
+
+        switch (nombreTabla) {
+            case "Reservas":
+                elementos = this.reservaController.listar();
+
+                elementos.forEach(elemento -> {
+                    agregarReservaATabla(modelo, (Reserva) elemento);
+                });
+                break;
+            case "Huespedes":
+                elementos = this.huespedController.listar();
+
+                elementos.forEach(elemento ->{
+                    Huesped huesped = (Huesped) elemento;
+
+                    modelo.addRow(new Object[]{
+                            huesped.getHuespedId(),
+                            huesped.getNombre(),
+                            huesped.getApellido(),
+                            huesped.getFechaNacimiento(),
+                            huesped.getNacionalidad(),
+                            huesped.getTelefono(),
+                            huesped.getNumeroReserva()
+                    });
+                });
+                break;
+            default:
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error. La tabla ingresada no existe.");
+                throw new RuntimeException("Ha ocurrido un error. La tabla ingresada no existe.");
+        }
+
+    }
+
+    private void agregarReservaATabla(DefaultTableModel modelo, Reserva elemento) {
+        Reserva reserva = elemento;
+
+        modelo.addRow(new Object[]{
+                reserva.getReservaId(),
+                reserva.getFechaEntrada(),
+                reserva.getFechaSalida(),
+                reserva.getValor(),
+                reserva.getFormaPago()
+        });
+    }
+
+    private void limpiarTabla(JTable tablaActual) {
+        DefaultTableModel modelo = (DefaultTableModel) tablaActual.getModel();
+        modelo.getDataVector().clear();
+    }
+
+    private void modificar(JTabbedPane panel) {
+        JTable tabla = getTablaActual(panel);
+        String nombreTablaElegida = getNombreTablaElegida(panel);
+        if (tieneFilaElegida(tabla)) {
+            JOptionPane.showMessageDialog(this, "Por favor, elije un item");
+            return;
+        }
+
+        TableModel modeloTabla = tabla.getModel();
+        Optional.ofNullable(modeloTabla.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
+                .ifPresentOrElse(fila -> {
+                    Integer id, filasModificadas;
+
+                    switch (nombreTablaElegida) {
+                        case "Reservas":
+                            id = (Integer) modeloTabla.getValueAt(tabla.getSelectedRow(), 0);
+                            String fechaEntrada = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 1);
+                            String fechaSalida = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 2);
+                            Double valor = (Double) modeloTabla.getValueAt(tabla.getSelectedRow(), 3);
+                            String formaPago = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 4);
+
+                            filasModificadas = this.reservaController.modificar(id, fechaEntrada, fechaSalida, valor, formaPago);
+
+                            break;
+
+                        case "Huespedes":
+                            id = (Integer) modeloTabla.getValueAt(tabla.getSelectedRow(), 0);
+                            String nombre = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 1);
+                            String apellido = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 2);
+                            String fechaNacimiento = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 3);
+                            String nacionalidad = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 4);
+                            String telefono = (String) modeloTabla.getValueAt(tabla.getSelectedRow(), 5);
+                            Integer idReserva = (Integer) modeloTabla.getValueAt(tabla.getSelectedRow(), 6);
+
+                            filasModificadas = this.huespedController.modificar(id, nombre, apellido, fechaNacimiento, nacionalidad, telefono, idReserva);
+                            break;
+                        default:
+                            JOptionPane.showMessageDialog(this, "Ha ocurrido un error. La tabla seleccionada no existe.");
+                            throw new RuntimeException("Ha ocurrido un error. La tabla seleccionada no existe.");
+                    }
+                    JOptionPane.showMessageDialog(this, String.format("%d item/s modificados con éxito.", filasModificadas));
+                }, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
+    }
+
+
+    private void eliminar(JTabbedPane panel) {
+        JTable tabla = getTablaActual(panel);
+        String nombreTablaElegida = getNombreTablaElegida(panel);
+        if (tieneFilaElegida(tabla)) {
+            JOptionPane.showMessageDialog(this, "Por favor, elije un item");
+            return;
+        }
+
+        TableModel modeloTabla = tabla.getModel();
+        Optional.ofNullable(modeloTabla.getValueAt(tabla.getSelectedRow(), tabla.getSelectedColumn()))
+                .ifPresentOrElse(fila -> {
+                    Integer id, cantidadEliminada;
+                    id = (Integer) modeloTabla.getValueAt(tabla.getSelectedRow(), 0);
+                    switch (nombreTablaElegida) {
+                        case "Reservas":
+                            cantidadEliminada = this.reservaController.eliminar(id);
+                            break;
+                        case "Huespedes":
+                            cantidadEliminada = this.huespedController.eliminar(id);
+                            break;
+                        default:
+                            JOptionPane.showMessageDialog(this, "Ha ocurrido un error. No existe elemento con ese id: " + id);
+                            throw new RuntimeException("Ha ocurrido un error. No existe elemento con ese id: " + id);
+                    }
+
+                    JOptionPane.showMessageDialog(this, cantidadEliminada + " item/s eliminados con éxito.");
+                }, () -> JOptionPane.showMessageDialog(this, "Por favor, elije un item"));
+    }
+
+    private String getNombreTablaElegida(JTabbedPane panel) {
+        String tablaElegida = null;
+        switch (panel.getSelectedIndex()) {
+            case 0:
+                tablaElegida = "Reservas";
+                break;
+            case 1:
+                tablaElegida = "Huespedes";
+                break;
+            default:
+                break;
+        }
+        return tablaElegida;
+    }
+
+    private JTable getTablaActual(JTabbedPane panel) {
+        return (JTable) panel.getSelectedComponent();
+    }
+
+    private boolean tieneFilaElegida(JTable tabla) {
+        return tabla.getSelectedRowCount() == 0 || tabla.getSelectedColumnCount() == 0;
     }
 
     private void buscarReservas() {
@@ -267,14 +438,14 @@ public class Busqueda extends JFrame {
         if (busqueda != null && !busqueda.equals("")) {
             try {
                 int reservaId = Integer.parseInt(busqueda);
-                listaReservas = reservaController.listarReservas(reservaId);
+                listaReservas = reservaController.listar(reservaId);
 
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(null, "Valor inválido." +
                         " La búsqueda de reservas solo puede hacerse por número de reserva.");
             }
         } else {
-            listaReservas = reservaController.listarReservas();
+            listaReservas = reservaController.listar();
         }
 
         if (listaReservas != null && listaReservas.size() > 0) {
@@ -303,14 +474,14 @@ public class Busqueda extends JFrame {
         List<Huesped> listaHuespedes;
 
         if (busqueda != null && !busqueda.equals("")) {
-            listaHuespedes = huespedController.listarHuespedes(busqueda);
+            listaHuespedes = huespedController.listar(busqueda);
         } else {
-            listaHuespedes = huespedController.listarHuespedes();
+            listaHuespedes = huespedController.listar();
         }
 
         if (listaHuespedes != null && listaHuespedes.size() > 0) {
             listaHuespedes.forEach(this::agregarNuevaColumnaHuesped);
-        }else {
+        } else {
             JOptionPane.showMessageDialog(null, "No se hallaron resultados para: " + busqueda);
         }
     }

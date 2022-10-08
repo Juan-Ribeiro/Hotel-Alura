@@ -336,7 +336,7 @@ public class RegistroHuesped extends JFrame {
         String nombre = txtNombre.getText();
         String apellido = txtApellido.getText();
         Date fechaNacimiento = txtFechaN.getDate();
-        String nacionalidad = txtNacionalidad.getSelectedItem().toString();
+        String nacionalidad = Objects.requireNonNull(txtNacionalidad.getSelectedItem()).toString();
         String telefono = txtTelefono.getText();
         int numeroReserva;
 

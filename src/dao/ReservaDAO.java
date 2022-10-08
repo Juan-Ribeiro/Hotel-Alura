@@ -96,4 +96,40 @@ public class ReservaDAO {
             }
         }
     }
+
+    public Integer modificar(Integer id, String fechaEntrada, String fechaSalida, Double valor, String formaPago) {
+        try {
+            String query = "UPDATE hotel_alura.reserva SET FechaEntrada = ?, FechaSalida = ?, Valor = ?, FormaPago = ? WHERE reservaId = ?";
+            final PreparedStatement statement = con.prepareStatement(query);
+            try (statement) {
+                statement.setString(1, fechaEntrada);
+                statement.setString(2, fechaSalida);
+                statement.setString(3, String.valueOf(valor));
+                statement.setString(4, formaPago);
+                statement.setInt(5, id);
+
+                statement.execute();
+
+                return statement.getUpdateCount();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Integer eliminar(Integer id) {
+        try {
+            String query = "DELETE FROM hotel_alura.reserva WHERE reservaId = ?";
+            PreparedStatement statement = this.con.prepareStatement(query);
+
+            try (statement) {
+                statement.setInt(1, id);
+                statement.execute();
+
+                return statement.getUpdateCount();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
